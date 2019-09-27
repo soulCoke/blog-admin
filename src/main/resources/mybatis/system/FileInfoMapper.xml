@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.system.info.mapper.FileInfoMapper">
+    
+    <resultMap type="FileInfo" id="FileInfoResult">
+        <result property="id"    column="id"    />
+        <result property="createTime"    column="createTime"    />
+        <result property="name"    column="name"    />
+        <result property="abPath"    column="abPath"    />
+        <result property="rtPath"    column="rtPath"    />
+        <result property="url"    column="url"    />
+    </resultMap>
+
+    <sql id="selectFileInfoVo">
+        select id, createTime, name, abPath, rtPath, url from sys_file_info
+    </sql>
+
+    <select id="selectFileInfoList" parameterType="FileInfo" resultMap="FileInfoResult">
+        <include refid="selectFileInfoVo"/>
+        <where>  
+            <if test="createTime != null "> and createTime = #{createTime}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="abPath != null  and abPath != ''"> and abPath = #{abPath}</if>
+            <if test="rtPath != null  and rtPath != ''"> and rtPath = #{rtPath}</if>
+            <if test="url != null  and url != ''"> and url = #{url}</if>
+        </where>
+    </select>
+    
+    <select id="selectFileInfoById" parameterType="Long" resultMap="FileInfoResult">
+        <include refid="selectFileInfoVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertFileInfo" parameterType="FileInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_file_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="createTime != null ">createTime,</if>
+            <if test="name != null  and name != ''">name,</if>
+            <if test="abPath != null  and abPath != ''">abPath,</if>
+            <if test="rtPath != null  and rtPath != ''">rtPath,</if>
+            <if test="url != null  and url != ''">url,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="createTime != null ">#{createTime},</if>
+            <if test="name != null  and name != ''">#{name},</if>
+            <if test="abPath != null  and abPath != ''">#{abPath},</if>
+            <if test="rtPath != null  and rtPath != ''">#{rtPath},</if>
+            <if test="url != null  and url != ''">#{url},</if>
+         </trim>
+    </insert>
+
+    <update id="updateFileInfo" parameterType="FileInfo">
+        update sys_file_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="createTime != null ">createTime = #{createTime},</if>
+            <if test="name != null  and name != ''">name = #{name},</if>
+            <if test="abPath != null  and abPath != ''">abPath = #{abPath},</if>
+            <if test="rtPath != null  and rtPath != ''">rtPath = #{rtPath},</if>
+            <if test="url != null  and url != ''">url = #{url},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteFileInfoById" parameterType="Long">
+        delete from sys_file_info where id = #{id}
+    </delete>
+
+    <delete id="deleteFileInfoByIds" parameterType="String">
+        delete from sys_file_info where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+</mapper>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增标签')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-tags-add">
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">名称：</label>
+                <div class="col-sm-8">
+                    <input name="name" class="form-control" type="text" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">分类id：</label>
+                <div class="col-sm-8">
+                    <select id="classifyId" name="classifyId" class="form-control m-b " required>
+                        <option value="">所有</option>
+                    </select>
+                    <span class="help-block m-b-none"><i class="fa fa-info-circle"></i> 代码生成请选择字典属性</span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: select2-css" />
+    <th:block th:include="include :: select2-js" />
+    <script type="text/javascript">
+        var prefix = ctx + "blog/tags"
+        $(function() {
+
+            //下拉框请求事件
+            $('[name="classifyId"]').select2({
+                ajax: {
+                    url: ctx + "blog/classify"+"/list",
+                    type: 'POST',
+                    processResults: function (data) {
+                        // Transforms the top-level key of the response object from 'items' to 'results'
+                        $.each(data.rows,function (i,item) {
+                            item.text = item.name
+                        })
+                        return {
+                            results: data.rows
+                        };
+                    }
+                }
+            });
+
+        })
+        $("#form-tags-add").validate({
+            focusCleanup: true
+        });
+        console.log("tag add")
+
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/add", $('#form-tags-add').serialize());
+            }
+        }
+    </script>
+</body>
+</html>

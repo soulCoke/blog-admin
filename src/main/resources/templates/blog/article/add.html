@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增博客文章')" />
+</head>
+
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-article-add" enctype="multipart/form-data">
+            <div class="col-sm-12">
+                            <div class="panel-body">
+                                <!--字段 -->
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">标题：</label>
+                                    <div class="col-sm-8">
+                                        <input name="title" class="form-control" type="text" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">描述：</label>
+                                    <div class="col-sm-8">
+                                        <input name="description" class="form-control" type="text" required>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">分类id：</label>
+                                    <div class="col-sm-8">
+                                        <select name="classifyId" class="form-control m-b" required>
+                                            <option value="">所有</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">标签id：</label>
+                                    <div class="col-sm-8">
+                                        <select id="tagIds" name="tagIds" class="form-control m-b" required multiple="multiple">
+                                            <option value="">所有</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-3 control-label">文章封面</label>
+                                    <div class="col-sm-8">
+                                        <input id="img" name="file" type="file" >
+                                    </div>
+                                </div>
+                                <div id="test-editormd" ></div>
+                            </div>
+                        </div>
+
+
+
+        </form>
+    </div>
+
+    <th:block th:include="include :: footer" />
+    <th:block th:include="include :: bootstrap-fileinput-css" />
+    <th:block th:include="include :: bootstrap-fileinput-js" />
+    <th:block th:include="include :: select2-css" />
+    <th:block th:include="include :: select2-js" />
+    <th:block th:include="include :: editor-md-css" />
+    <th:block th:include="include :: editor-md-js" />
+    <script type="text/javascript">
+        var prefix = ctx + "blog/article"
+        var testEditor;
+        $(document).ready(function () {
+            $("#img").fileinput({
+                'theme': 'explorer-fas',
+                'uploadUrl': '#',
+                'language': 'en',
+                showPreview: true,
+                dropZoneEnabled: false,
+                overwriteInitial: false,
+                initialPreviewAsData: false,
+                allowedFileExtensions: ['gif','jpg','png'],//接收的文件后缀
+            });
+        });
+
+        $(function() {
+            //markdown 初始化
+            testEditor = editormd("test-editormd", {
+                width: "100%",
+                height: 740,
+                syncScrolling : "single",
+                path    : "../../ajax/libs/editor-md/lib/",
+                imageUpload    : true,
+                imageFormats   : ["jpg", "jpeg", "gif", "png", "bmp", "webp"],
+                imageUploadURL : "../../system/info/uploadMD",
+            });
+            console.log("editormd 初始化成功")
+
+            //下拉框请求事件
+            $('[name="classifyId"]').select2({
+                ajax: {
+                    url: ctx + "blog/classify"+"/list",
+                    type: 'POST',
+                    processResults: function (data) {
+                        // Transforms the top-level key of the response object from 'items' to 'results'
+                        $.each(data.rows,function (i,item) {
+                            item.text = item.name
+                        })
+                        return {
+                            results: data.rows
+                        };
+                    }
+                }
+            });
+
+            //下拉框请求事件
+            $('[name="tagIds"]').select2({
+                ajax: {
+                    url: ctx + "blog/tags"+"/list",
+                    type: 'POST',
+                    processResults: function (data) {
+                        // Transforms the top-level key of the response object from 'items' to 'results'
+                        $.each(data.rows,function (i,item) {
+                            item.text = item.name
+                        })
+                        return {
+                            results: data.rows
+                        };
+                    }
+                }
+            });
+
+        })
+
+       /* $("#form-article-add").validate({
+            focusCleanup: true
+        });*/
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                var formData = new FormData($("#form-article-add")[0]);
+                formData.append("content",testEditor.getMarkdown())
+                formData.append("tags",$('#tagIds option:selected').text().join(","))
+                $.operate.saveWithFile(prefix + "/add", formData);
+            }
+        }
+    </script>
+</body>
+</html>

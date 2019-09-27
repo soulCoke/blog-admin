@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.blog.apis.mapper.ApiArticleMapper">
+
+    <resultMap type="com.ruoyi.project.blog.apis.vo.ApiArticleVO" id="ApiArticleResult">
+        <result property="id"    column="id"    />
+        <result property="created_at"    column="createTime"    />
+        <result property="deleted_at"    column="deleteTime"    />
+        <result property="title"    column="title"    />
+        <result property="content"    column="content"    />
+        <result property="img"    column="img"    />
+        <result property="classifyId"    column="classifyId"    />
+        <result property="classify"    column="classify"    />
+        <result property="clicks"    column="clickCount"    />
+        <result property="like"    column="likeCount"    />
+        <result property="view_count"    column="viewCount"    />
+        <result property="tempTags"    column="tags"    />
+        <result property="commentCount"    column="commentCount"    />
+    </resultMap>
+
+    <resultMap type="com.ruoyi.project.blog.apis.vo.ApiCommentVO" id="ApiCommentResult">
+        <result property="id"    column="id"    />
+        <result property="created_at"    column="createTime"    />
+        <result property="article_id"    column="articleId"    />
+        <result property="content"    column="content"    />
+        <result property="reply_id"    column="replyId"    />
+        <result property="name"    column="userName"    />
+        <result property="content"    column="content"    />
+    </resultMap>
+
+    <resultMap type="com.ruoyi.project.blog.apis.vo.ApiMessageVO" id="ApiMessageResult">
+        <result property="id"    column="id"    />
+        <result property="created_at"    column="createTime"    />
+        <result property="content"    column="content"    />
+        <result property="reply_id"    column="replyId"    />
+        <result property="name"    column="userName"    />
+        <result property="content"    column="content"    />
+    </resultMap>
+
+    <resultMap type="com.ruoyi.project.blog.apis.vo.ApiBannerVO" id="ApiBannerResult">
+        <result property="id"    column="id"    />
+        <result property="created_at"    column="createTime"    />
+        <result property="title"    column="description"    />
+        <result property="url"    column="url"    />
+        <result property="type"    column="type"    />
+    </resultMap>
+
+    <resultMap type="com.ruoyi.project.blog.apis.vo.ApiLinkVO" id="ApiLinkResult">
+        <result property="id"    column="id"    />
+        <result property="title"    column="name"    />
+        <result property="url"    column="url"    />
+        <result property="img"    column="avatar"    />
+        <result property="desc"    column="introduction"    />
+
+    </resultMap>
+
+    <sql id="selectArticleVo">
+        select id, createTime, deleteTime, status, userId, title, description, content, img, classifyId, clickCount, likeCount, viewCount, tagIds, commentCount from blog_article
+    </sql>
+    <!-- 操作文章 -->
+    <update id="delArticle">
+       update  blog_article
+        <trim prefix="SET" suffixOverrides=",">
+            <if  test='delFlag != null and delFlag=="1"'>viewCount = viewCount+1,clickCount=clickCount+1,</if>
+            <if  test='delFlag != null and delFlag=="2"'>likeCount = likeCount+1,</if>
+            <if  test='delFlag != null and delFlag=="3"'>commentCount = commentCount+1,</if>
+        </trim>
+        where id = #{id}
+    </update>
+    <!-- 文章列表 -->
+    <select id="selectArticleList"  resultMap="ApiArticleResult">
+        select
+        ba.id, ba.createTime, ba.deleteTime, ba.status, ba.userId, ba.title, ba.description, ba.img, ba.classifyId,
+        ba.clickCount, ba.likeCount, ba.viewCount, ba.tagIds, ba.commentCount,ba.tags,
+        bc.name as classify
+        from blog_article ba
+        inner join blog_classify bc on bc.id = ba.classifyId
+        <where>  
+            <if test="tag != null  and tag != ''"> and FIND_IN_SET(#{tag},tags)</if>
+        </where>
+        order by ba.createTime desc
+    </select>
+    <!-- 分类接口 -->
+    <select id="selectClassify" resultType="com.ruoyi.project.blog.apis.vo.ApiClassifyVO">
+        SELECT
+          bc.`name`,
+          GROUP_CONCAT(bt.`name`) AS tempTags
+        FROM
+          blog_classify bc
+          INNER JOIN blog_tags bt ON bt.`classifyId` = bc.`id`
+          WHERE bc.`status` =1 AND bt.`status` = 1
+          GROUP BY bc.`id`
+    </select>
+    <!-- 文章详情  上一篇 下一篇-->
+    <select id="getArticle" resultMap="ApiArticleResult">
+        select
+        <if test="articleFlag == null">
+            ba.id, ba.createTime, ba.deleteTime, ba.status, ba.userId, ba.title, ba.description, ba.img, ba.classifyId,
+            ba.clickCount, ba.likeCount, ba.viewCount, ba.tagIds,ba.content, ba.commentCount,ba.tags,
+            bc.name as classify
+        </if>
+
+        <if test='articleFlag != null and articleFlag=="1"  and id !=null  '>
+            max(ba.id) as id,ba.title
+        </if>
+        <if test='articleFlag != null and articleFlag=="2"  and id !=null  '>
+            min(ba.id)as id,ba.title
+        </if>
+
+        from blog_article ba
+        inner join blog_classify bc on bc.id = ba.classifyId
+        <where>
+            <if test="articleFlag == null and id !=null ">ba.id = #{id}</if>
+            <if test='articleFlag != null and articleFlag=="1"  and id !=null  '> ba.id <![CDATA[<]]> #{id}</if>
+            <if test='articleFlag != null and articleFlag=="2"  and id !=null  '> ba.id <![CDATA[>]]> #{id}</if>
+            <if test="tag != null  and tag != ''"> and FIND_IN_SET(#{tag},tags)</if>
+        </where>
+        limit 1
+    </select>
+    <!-- 查询评论 -->
+    <select id="listComment" resultMap="ApiCommentResult">
+        SELECT
+        *
+        FROM blog_article_comment
+        <where>
+            <if test="article_id != null  and article_id != ''"> and articleId = #{article_id}</if>
+            <if test="userId != null  and userId != ''"> and userId = #{userId}</if>
+        </where>
+        order by createTime desc
+    </select>
+
+    <!-- 留言分页 -->
+    <select id="listMessage" resultMap="ApiMessageResult">
+        SELECT
+        *
+        FROM blog_message
+        <where>
+            <if test="article_id != null  and article_id != ''"> and articleId = #{article_id}</if>
+            <if test="userId != null  and userId != ''"> and userId = #{userId}</if>
+        </where>
+        order by createTime desc
+
+    </select>
+    <!-- banner 列表 -->
+    <select id="listBanner" resultMap="ApiBannerResult">
+        select * from blog_banner
+    </select>
+    <!-- 友链 -->
+    <select id="listLink" resultMap="ApiLinkResult">
+         select * from blog_link order by id asc
+    </select>
+
+</mapper>

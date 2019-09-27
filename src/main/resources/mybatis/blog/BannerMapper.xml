@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.blog.banner.mapper.BannerMapper">
+    
+    <resultMap type="Banner" id="BannerResult">
+        <result property="id"    column="id"    />
+        <result property="url"    column="url"    />
+        <result property="description"    column="description"    />
+        <result property="type"    column="type"    />
+    </resultMap>
+
+    <sql id="selectBannerVo">
+        select id, url, description, type from blog_banner
+    </sql>
+
+    <select id="selectBannerList" parameterType="Banner" resultMap="BannerResult">
+        <include refid="selectBannerVo"/>
+        <where>  
+            <if test="url != null  and url != ''"> and url = #{url}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="type != null  and type != ''"> and type = #{type}</if>
+        </where>
+    </select>
+    
+    <select id="selectBannerById" parameterType="Long" resultMap="BannerResult">
+        <include refid="selectBannerVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertBanner" parameterType="Banner" useGeneratedKeys="true" keyProperty="id">
+        insert into blog_banner
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="url != null  and url != ''">url,</if>
+            <if test="description != null  and description != ''">description,</if>
+            <if test="type != null  and type != ''">type,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="url != null  and url != ''">#{url},</if>
+            <if test="description != null  and description != ''">#{description},</if>
+            <if test="type != null  and type != ''">#{type},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBanner" parameterType="Banner">
+        update blog_banner
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="url != null  and url != ''">url = #{url},</if>
+            <if test="description != null  and description != ''">description = #{description},</if>
+            <if test="type != null  and type != ''">type = #{type},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBannerById" parameterType="Long">
+        delete from blog_banner where id = #{id}
+    </delete>
+
+    <delete id="deleteBannerByIds" parameterType="String">
+        delete from blog_banner where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+</mapper>

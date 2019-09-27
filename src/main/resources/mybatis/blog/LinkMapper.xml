@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.blog.link.mapper.LinkMapper">
+    
+    <resultMap type="Link" id="LinkResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="url"    column="url"    />
+        <result property="avatar"    column="avatar"    />
+        <result property="introduction"    column="introduction"    />
+    </resultMap>
+
+    <sql id="selectLinkVo">
+        select id, name, url, avatar, introduction from blog_link
+    </sql>
+
+    <select id="selectLinkList" parameterType="Link" resultMap="LinkResult">
+        <include refid="selectLinkVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="url != null  and url != ''"> and url = #{url}</if>
+            <if test="avatar != null  and avatar != ''"> and avatar = #{avatar}</if>
+            <if test="introduction != null  and introduction != ''"> and introduction = #{introduction}</if>
+        </where>
+    </select>
+    
+    <select id="selectLinkById" parameterType="Long" resultMap="LinkResult">
+        <include refid="selectLinkVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertLink" parameterType="Link" useGeneratedKeys="true" keyProperty="id">
+        insert into blog_link
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null  and name != ''">name,</if>
+            <if test="url != null  and url != ''">url,</if>
+            <if test="avatar != null  and avatar != ''">avatar,</if>
+            <if test="introduction != null  and introduction != ''">introduction,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null  and name != ''">#{name},</if>
+            <if test="url != null  and url != ''">#{url},</if>
+            <if test="avatar != null  and avatar != ''">#{avatar},</if>
+            <if test="introduction != null  and introduction != ''">#{introduction},</if>
+         </trim>
+    </insert>
+
+    <update id="updateLink" parameterType="Link">
+        update blog_link
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null  and name != ''">name = #{name},</if>
+            <if test="url != null  and url != ''">url = #{url},</if>
+            <if test="avatar != null  and avatar != ''">avatar = #{avatar},</if>
+            <if test="introduction != null  and introduction != ''">introduction = #{introduction},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteLinkById" parameterType="Long">
+        delete from blog_link where id = #{id}
+    </delete>
+
+    <delete id="deleteLinkByIds" parameterType="String">
+        delete from blog_link where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    
+</mapper>
