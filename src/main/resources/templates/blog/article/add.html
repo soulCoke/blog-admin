@@ -134,7 +134,11 @@
             if ($.validate.form()) {
                 var formData = new FormData($("#form-article-add")[0]);
                 formData.append("content",testEditor.getMarkdown())
-                formData.append("tags",$('#tagIds option:selected').text().join(","))
+                var tagsValue = [];
+                $.each($('#tagIds option:selected'),function (i,item) {
+                    tagsValue.push($(item).text())
+                })
+                formData.append("tags",tagsValue.join(","))
                 $.operate.saveWithFile(prefix + "/add", formData);
             }
         }
